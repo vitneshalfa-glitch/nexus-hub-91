@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useStore } from "@/store/useStore";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,9 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { UserPlus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const AddUsers = () => {
-  const addUser = useStore((state) => state.addUser);
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     name: "",
     age: "",
@@ -18,8 +19,9 @@ const AddUsers = () => {
     location: "",
     userType: "" as "employee" | "driver" | "",
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!formData.name || !formData.age || !formData.phone1 || !formData.location || !formData.userType) {
@@ -27,18 +29,26 @@ const AddUsers = () => {
       return;
     }
 
-    addUser({
+    setIsSubmitting(true);
+    
+    const { error } = await supabase.from("users").insert({
       name: formData.name,
       age: parseInt(formData.age),
       phone1: formData.phone1,
-      phone2: formData.phone2,
+      phone2: formData.phone2 || null,
       location: formData.location,
-      userType: formData.userType as "employee" | "driver",
+      user_type: formData.userType,
     });
+
+    setIsSubmitting(false);
+
+    if (error) {
+      toast.error("Failed to add user");
+      return;
+    }
 
     toast.success(`${formData.userType === "employee" ? "Employee" : "Driver"} added successfully!`);
     
-    // Reset form
     setFormData({
       name: "",
       age: "",
@@ -47,6 +57,8 @@ const AddUsers = () => {
       location: "",
       userType: "",
     });
+    
+    navigate(formData.userType === "employee" ? "/employees" : "/drivers");
   };
 
   return (
@@ -143,9 +155,9 @@ const AddUsers = () => {
               </Select>
             </div>
 
-            <Button type="submit" className="w-full">
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               <UserPlus className="w-4 h-4 mr-2" />
-              Add User
+              {isSubmitting ? "Adding..." : "Add User"}
             </Button>
           </form>
         </CardContent>

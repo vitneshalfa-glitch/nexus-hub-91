@@ -7,12 +7,13 @@ export interface User {
   phone1: string;
   phone2: string;
   location: string;
-  userType: UserType;
-  attendance?: AttendanceRecord[];
-  tasks?: string[];
+  user_type: UserType;
+  created_at?: string;
 }
 
 export interface AttendanceRecord {
+  id?: string;
+  user_id: string;
   date: string;
   status: "present" | "absent" | "leave";
 }
@@ -20,11 +21,18 @@ export interface AttendanceRecord {
 export interface Task {
   id: string;
   title: string;
-  description: string;
-  assignedTo: string[];
+  description: string | null;
   status: "main" | "reassigned" | "reuse";
-  createdAt: string;
-  dueDate: string;
+  task_status: "pending" | "in-progress" | "completed";
+  due_date: string;
+  created_at?: string;
+}
+
+export interface TaskAssignment {
+  id: string;
+  task_id: string;
+  user_id: string;
+  created_at?: string;
 }
 
 export interface Lead {
@@ -34,5 +42,5 @@ export interface Lead {
   phone: string;
   status: "new" | "contacted" | "qualified" | "converted" | "lost";
   value: number;
-  createdAt: string;
+  created_at?: string;
 }
